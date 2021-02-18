@@ -1,47 +1,49 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-contract MyToken{
+import "./IERC20.sol";
+
+contract MyToken is IERC20{
     
     string private name;
     string private symbol;
     uint256 private total_supply;
     uint8 private decimal;
-    address owner;
+    address public owner;
     
     mapping (address => uint) private balances;
     mapping (address => mapping(address => uint)) private allownce;
     
-    event Transfer(address indexed, address indexed , uint256 );
-    event Approve(address indexed, address indexed, uint256 );
-    
+
     constructor()  {
         name="FarhanCoins";
         symbol="FRX";
         total_supply=10000;
         decimal=18;
         owner=msg.sender;
+        balances[owner]+=total_supply;
     }
     
-    function getTotalSupply() public view returns(uint256){
+    function totalSupply() external virtual override view returns(uint256){
         return total_supply;
     }
     
-    function getName() public view returns(string memory){
+    function getName() external view returns(string memory){
         return name;
     }
     
-    function getSymbol() public view returns(string memory){
+    function getSymbol() external view returns(string memory){
         return symbol;
     }
-    function getDecimal() public view returns(uint8){
+    function getDecimal() external view returns(uint8){
         return decimal;
     }
     
-    function balanceOf(address _user) public view returns(uint256){
+    function balanceOf(address _user) public virtual override view returns(uint256){
         return balances[_user];
     }
     
-    function transfer(address _to, uint256 _value) public returns(bool){
+    function transfer(address _to, uint256 _value) external virtual override returns(bool){
         require(_to!=address(0),"Invalid Address");
         require(_value<=balances[msg.sender]);
         balances[msg.sender]-=_value;
@@ -50,26 +52,27 @@ contract MyToken{
         return true;
     }
     
-    function approve(address spender, uint256 amount) private returns(bool){
+    function approve(address spender, uint256 amount) external virtual override returns(bool){
         require(spender!=address(0),"Not Valid Address ");
         require(amount<=balances[msg.sender]);
-        allownce[msg.sender][spender]=amount;
-        emit Approve(msg.sender,spender,amount);
+        allownce[msg.sender][spender]+=amount;
+        emit Approval(owner, spender, amount);(msg.sender,spender,amount);
         return true;
     }
     
-    function getAllownce(address _owner, address _spender) public view returns(uint256){
+    function allowance(address _owner, address _spender) external virtual override view returns(uint256){
         return allownce[_owner][_spender];
     }
     
-    function transferFrom(address _sender, address _to, uint256 _value) public returns(bool){
+    function transferFrom(address _sender, address _to, uint256 _value) external virtual override returns(bool){
         require(_to!=address(0),"Invalid recipient address");
-        uint currentallownce=allownce[_sender][msg.sender];
+        require(allownce[_sender][msg.sender]<= _value , "_sender have not enough balance");
         balances[_sender]-=_value;
         balances[_to]+=_value;
-        approve(msg.sender,(currentallownce-_value));
+        allownce[_sender][msg.sender]-=_value;
         return true;
         
     }
     
 }
+
