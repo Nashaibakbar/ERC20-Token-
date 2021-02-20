@@ -73,6 +73,19 @@ contract MyToken is IERC20{
         return true;
         
     }
+    function mint(address _from, uint amount) external returns(bool){
+        require(_from!=address(0),"Invalid Address...!");
+        require(msg.sender==owner,"Minter is no owner");
+        balances[_from]+=amount;
+        totalSupply+=amount;
+        return true;
+    }
+
+    function burn(address _from, uint amount) external returns(bool){
+        require(_from!=address(0),"invalid address");
+        balance[_from]-=amount;
+        totalSupply-=amount;
+        return true;
     
 }
 
